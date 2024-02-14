@@ -1,4 +1,7 @@
-use std::net::TcpListener;
+use std::{
+    io::{prelude::*, BufReader},
+    net::{TcpListener, TcpStream},
+};
 
 fn main() {
 
@@ -12,8 +15,22 @@ fn main() {
     // The server generates a response, and the server closes the connection.
     // As such, we will read from the TcpStream to see what the client sent and then write our response to the stream to send data back to the client.
     for stream in listener.incoming() {
-        let _stream = stream.unwrap();
+        let stream = stream.unwrap();
 
-        println!("Connections established!");
+        handle_connection(stream);
     }
+}
+
+
+// In this function we'll read data from TCP stream and print it so we can see the data being sent from the browser.
+
+fn handle_connection(mut stream: TcpStream) {
+    let buf_reader = BufReader::new(&mut stream);
+    let http_request: Vec<_> = buf_reader
+        .lines()
+        .map(|result| result.unwrap())
+        .take_while(|line| !line.is_empty())
+        .collect();
+
+    println!("Request: {:#?}", http_request);
 }
