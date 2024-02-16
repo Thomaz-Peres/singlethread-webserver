@@ -82,3 +82,4 @@ HTTP/1.1 200 OK\r\n\r\n
 
 ## Validating the request and selectively responding
 
+Let's add functionality to check that the browser ir request / before return the HTML file and return an error if the browser requests anything else.
