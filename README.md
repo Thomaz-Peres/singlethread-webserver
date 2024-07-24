@@ -78,3 +78,64 @@ Here is an example response that uses HTTP version 1.1, has a status code of 200
 ```
 HTTP/1.1 200 OK\r\n\r\n
 ```
+
+
+# I will start the second part (I should have done that a long time ago)
+
+The single thread server just process one request in turn, meaning it won't process a second connection until the first is finished processing.
+
+##### Simulating a Slow request in the Current server implementation.
+
+We will switch from `if` to `match` now that we have three cases. We need to explicitly match on a slice of `request_line` to pattern match against the string literal values; `match` doesn't do automatic referencing and dereferencing like the equality method does.
+
+There are multiple techniques we could use to avoid requests backing up behind a slow request; the one we'll implement is a thread pool.
+
+### Improving a Throughput with a Thread Pool
+
+We'll limit the number of threads in the pool to a small number to protect us from Denial of Service (DoS) attacks.
+
+Request that come in are sent to the pool for processing. The pool will maintain a queue of incoming requests.
+
+Other options to improve the throughout of a web server are the *fork/join model*, the *single-threaded async I/O model*, or the *multi-threaded async I/O model*.
+
+### Spawning a Thread for Each Request
+
+Making `Main` spawn a new thread to handle each stream within the `for` loop.
+
+```rust
+fn main() {
+    let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+
+    for stream in listener.incoming() {
+        let stream = stream.unwrap();
+
+        thread::spawn(|| {
+            handle_connection(stream);
+        });
+    }
+} 
+```
+
+## Creating a Finite Number of Threads
+
+Use a hypothetical interface for a `ThreadPool` struct we want to use instead of `thread::spawn`.
+
+```rust
+fn main() {
+    let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+    let pool = ThreadPool::new(4);
+
+    for stream in listener.incoming() {
+        let stream = stream.unwrap();
+
+        pool.execute(|| {
+            handle_connection(stream);
+        });
+    }
+} 
+```
+
+We need to implement `pool.execute`. This code won't yet compile
+
+## Building ThreadPool Using Compiler Driven Development
+
