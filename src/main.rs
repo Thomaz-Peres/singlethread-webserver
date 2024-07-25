@@ -2,6 +2,8 @@ use std::{
     fs, io::{prelude::*, BufReader}, net::{TcpListener, TcpStream}, thread::{self}, time::Duration
 };
 
+use hello::ThreadPool;
+
 fn main() {
     // This code will listen at the local address 127.0.0.1:7878 for incoming TCP streams.
     // When it gets an incoming stream, it will print "Connections established!".

@@ -139,3 +139,24 @@ We need to implement `pool.execute`. This code won't yet compile
 
 ## Building ThreadPool Using Compiler Driven Development
 
+With you run `cargo check`, will get an error and this error tells us we need a `ThreadPool` type or module
+
+Our `ThreadPool` will be independent of the kind of work our web server is doing.
+
+Lets switch the project from binary crate to a library crate. Creating the file `src/lib.rs`
+
+We use `usize` as the type of the `size` parameter, because we know that a negative number of thread doesn't make any sense.
+
+We'll define the `execute` method on `ThreadPool` to take a closure as a parameter, then the function it takes the closure it's given and gives it to an idle thread in the pool to run.
+
+In the `execute` method, we use `FnOnce()` because the thread for running a request will only execute that requet's closure one time.
+
+The `F` type parameter also has the trait bound `Send` and the lifetime bound `'static`.
+
+We need `Send` to transfer the closure from one thread to another and `static` because we don't know how long the thread will take to execute.
+
+And the `FnOnce` use  the `()` because represents a closure that takes no paramters and returns the unit type `()`.
+
+Just like functions definitions, the return type can be omitted from the signature, but even if we have no parameters, we still need the parentheses.
+
+## Validatin the Number of Threads in new
