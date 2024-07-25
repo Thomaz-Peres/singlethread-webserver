@@ -160,3 +160,22 @@ And the `FnOnce` use  the `()` because represents a closure that takes no paramt
 Just like functions definitions, the return type can be omitted from the signature, but even if we have no parameters, we still need the parentheses.
 
 ## Validatin the Number of Threads in new
+
+With the comments line, we create a doc for the methods, if you run `cargo doc --open`, you will se the docs.
+
+
+## Creating Space to Store the Threads
+
+We can create those thread and store them in the `ThreadPool` struct before returning the struct.
+
+Let's see how "store" a thread.
+
+We will test the `JoinHandle<>` because is the `spawn` functions does, and we look the `spawn` to learn what he does.
+
+In the `spawn` definition, it's used `JoinHandle<T>`, but in our case, our `new` function not return anything then we change the `JoinHandle<T>` to `JoinHandle<()>`.
+
+The `Vec::with_capacity` is almost the same task as `Vec::new`, but it preallocates space in the Vector. In this cases where we know we have the size to store, is more efficient
+
+
+## A Worker Struct Responsible for Sending Code from the ThreadPool to a Thread
+
