@@ -179,3 +179,8 @@ The `Vec::with_capacity` is almost the same task as `Vec::new`, but it prealloca
 
 ## A Worker Struct Responsible for Sending Code from the ThreadPool to a Thread
 
+The `thread::spawn` expects to get some code the thread should run as soon as the thread is created. In our case, we want to create the threads and have them *wait* for code that we'll send later. We have to implement it manually.
+
+We'll call this data structure *Worker*, which is a common term in pooling implementations.
+
+We'll store, in a vector, instances of the *Worker* struct. Each `Worker` will store a single `JoinHandle<()>` instance.
