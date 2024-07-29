@@ -184,3 +184,42 @@ The `thread::spawn` expects to get some code the thread should run as soon as th
 We'll call this data structure *Worker*, which is a common term in pooling implementations.
 
 We'll store, in a vector, instances of the *Worker* struct. Each `Worker` will store a single `JoinHandle<()>` instance.
+
+We'll implement a method on `Worker` that will take a closure of code to run and send it to the already running thread for execution.
+We'll also give an `id` to each worker for distinguish between workers in the pool.
+
+Process will happen when we create a `ThreadPool`.
+
+1. Defina a `Worker` struct that holds an `id` and a `JoinHandle<()>`
+2. Change `ThreadPool` to hold a vector of `Worker` instances.
+3. Define a `Worker::new` functions that takes an `id` number and return a `Worker` instance that holds the `id` and a thread spawned with an empty closure.
+4. In `ThreadPool::new`, use the `for` loop counter to generate an `id`, create a new `Worker` with that `id`, and store the worker in the vector.
+
+## Sending Request to Thread via Channels
+
+We need to give `thread::spawn` a closure to run when create each `Worker` during the creation of the `ThreadPool`.
+
+We want the `Worker` structs that we just created to fetch the code to run from a queue held in the `ThreadPool` and send that code to its thread to run.
+
+We'll use a channel to function as the queue of jobs, and `execute` will send a job from the `ThreadPool` to the `Worker` instances, which will send the job to its thread.
+
+The plan:
+
+1. The `ThreadPool` will create a channel and hold on to the sender.
+2. Each `Worker` will hold on to the receiver.
+3. We'll create a new `Job` struct that will hold the closures we want to send down the channel.
+4. The `execute` method will send the job it wants to execute through the sender.
+5. In its threads, the `Worker` will loop over its receiver and execute the closures of any jobs it receives.
+
+To share ownership across multiple threads and allow the threads to mutate the value, we need to use `Arc<Mutex<T>>`. The `Arc` type will let multiple workers own the receiver, and `Mutex` will ensure that only one worker gets a job from the receiver at a time.
+
+
+## Implementing the execute Method
+
+Let's change the `Job` struct to a type alias for a trait object that holds the type of closure that `execute` receives.
+
+`lock` oon the `receiver` to acquire the mutex. A lock might fail if the mutex is in a *poisoned* state, which can happen if some other thread panicked while holding the lock rather than releasing the lock.
+
+If we get the lock on the mutex, we call `recv` to receive a `Job` from the channel.
+
+The call to `recv` blocks, so if there is no job yet, the current therad will wait until a job becomes available. The `Mutex<T>` ensures that only one `Worker` thread at a time is trying to request a job.
